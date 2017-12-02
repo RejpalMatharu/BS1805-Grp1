@@ -19,7 +19,13 @@ data=pd.DataFrame(file[10:])
 data.columns=['x']
 data=data['x'].str.split(' ',expand=True)
 data.columns=['city','latitude','longitude']
-data['position'] = data[data.columns[1:]].apply(lambda x: ','.join(x.dropna()),axis=1)
+data["city"] = pd.to_numeric(data["city"])
+data["latitude"] = pd.to_numeric(data["latitude"])/1000
+data["longitude"] = pd.to_numeric(data["longitude"])/1000
+data['position'] = data['latitude'].astype(str) +','+ data['longitude'].astype(str)
+#data['position'] = data[data.columns[1:]].apply(lambda x: ','.join(x.dropna()),axis=1)
+
+
 
 
 #calculate great circle distance of each pair of the city
@@ -27,7 +33,7 @@ data['position'] = data[data.columns[1:]].apply(lambda x: ','.join(x.dropna()),a
 distance=list()
 for i in range(38):
     for j in range(38):
-        distance.append((great_circle(data.loc[i,'position'],data.loc[j,'position'])))
+        distance.append((great_circle(data.loc[i,'position'],data.loc[j,'position']).km))
 
 chunks = [distance[x:x+38] for x in range(0, len(distance), 38)]
 
@@ -41,8 +47,6 @@ matrix=pd.DataFrame(chunks,columns=city)
 
 lons = data['longitude'].tolist()
 lats = data['latitude'].tolist()
-lats = [float(i)/1000 for i in lats]
-lons = [float(i)/1000 for i in lons]
 
 plt.figure(figsize=(18,18))
 plt.scatter(lons,lats)
