@@ -8,10 +8,13 @@ Last version created on Sun Dec  3 14:39:35 2017
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+import operator
 
-# assigns spreadsheet filename and Loads spreadsheet
-# loads both sheets from excel file into DataFrames, replaces NA's nd '-' with 0
-# drops the first column
+"""
+ assigns spreadsheet filename and Loads spreadsheet
+ loads both sheets from excel file into DataFrames, replaces NA's nd '-' with 0
+ drops the first column
+"""
 interactions = r'C:\Users\Anka\Documents\Network Analytics\HW2_who_talks_to_whom.xlsx'
 dfInteractions = pd.ExcelFile(interactions)
 dfSent = dfInteractions.parse(dfInteractions.sheet_names[0]).fillna(0).replace(['-'], [0]).drop('Nodes', 1)
@@ -23,6 +26,7 @@ dfReceived = dfReceived.transpose()
 dfReceived.columns = dfReceived.index
 dfSent.columns = dfReceived.index
 dfSent.index = dfReceived.index
+
 """
  averaging sheets, Sent with transposed Receive - 
  in Sent sheet rows correspond to number of messages sent by those people to other
@@ -35,6 +39,7 @@ dfAverage = (dfReceived.add(dfSent, fill_value=0))/2
             
 a = dfAverage.as_matrix()
 G = nx.DiGraph(a)
+
 """
  define distance from one person to another as the inverse of number of messages
  so the more messages we sent the more we want this path to be chosen for BFS -
@@ -56,6 +61,11 @@ centralitydfAvg['eigen_centr']=(nx.eigenvector_centrality(G, max_iter=500)).valu
 centralitydfAvg['closeness_centr'] = (nx.closeness_centrality(G, distance = 'distance')).values() #represents the closeness FROM this node
 centralitydfAvg['closeness_centr_rev'] = (nx.closeness_centrality(G.reverse(), distance = 'distance')).values() #represents closeness TO this node
 centralitydfAvg['between_centr'] = (nx.betweenness_centrality(G, normalized = False, weight = 'distance')).values()
+
+# for clustering coeff we need to create undirected graph
+GUnd = nx.Graph(a)
+clstringCoeff = nx.clustering(GUnd, weight='weight')
+sortedClstringCoeff = sorted(clstringCoeff.items(), key=operator.itemgetter(1))
 
 plt.figure(figsize=(15,15))
 nodesDegree = dict(nx.degree(G))
