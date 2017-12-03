@@ -23,12 +23,24 @@ dfReceived = dfReceived.transpose()
 dfReceived.columns = dfReceived.index
 dfSent.columns = dfReceived.index
 dfSent.index = dfReceived.index
-
+"""
+ averaging sheets, Sent with transposed Receive - 
+ in Sent sheet rows correspond to number of messages sent by those people to other
+ in Receive sheet the columns correspond to the same number of sent messages 
+ by those people but claimed by receivers
+ therefore by taking this avarage we want to minimize the error introduced by obvious 
+ problem in this task - how to quantify  the interactions with others from our cohort
+"""
 dfAverage = (dfReceived.add(dfSent, fill_value=0))/2
             
 a = dfAverage.as_matrix()
 G = nx.DiGraph(a)
-            
+"""
+ define distance from one person to another as the inverse of number of messages
+ so the more messages we sent the more we want this path to be chosen for BFS -
+ in other words we want paths with highest values
+ this will be used for closeness and betweenness centrality
+"""            
 dist = nx.get_edge_attributes(G, 'weight')
 for k,v in dist.items():
     dist[k] = 1/v
